@@ -1,0 +1,26 @@
+<!doctype html>
+
+<head>
+</head>
+
+<body>
+
+  <p> Rejestracja nowego konta
+  <div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    {{ message }}
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+  <form action="/register" method="post">
+    Login: <input name="username" value="" type="text" /><br>
+    Hasło: <input name="password" value="" type="password" /><br>
+    Powtórz hasło: <input name="repeated_password" value="" type="password" /><br>
+    <input name="submit" value="Zarejestruj" type="submit" />
+  </form>
+
+  </p>
+</body>

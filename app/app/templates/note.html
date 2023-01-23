@@ -1,0 +1,55 @@
+<html>
+
+<body>
+    <h1> Notatka {{ id }}:</h1>
+    Właściciel: {{ owner }}<br>
+    Czy publiczna: {{ isPublic }}<br>
+    Czy zaszyfrowana: {{ isEncrypted }}<br>
+    ___________________________________<br>
+    {% block content %}
+    {% if isEncrypted == 0 %}
+    <div>
+        Treść notatki:<br>
+        ___________________________________<br>
+        {{ note |safe }}<br>
+        ___________________________________<br>
+        {% if isOwner == 1 and isPublic == 0 %}
+        <form action="{{ url_for('mainpanel') }}/{{id}}" method="post">
+            Nazwa użytkownika, któremu chcesz udostępnić notatkę:<br>
+            <input type="text" id="shareUser" name="shareUser" rows="1" cols="20"></textarea>
+            <input type="text" id="isShare" name="isShare" style=visibility:hidden value="true"/>
+            <br>
+        <input type="submit" value="Udostępnij notatkę">
+        </form>
+        {% endif %}
+    </div>
+    {% else %}
+    <div>Notatka zaszyfrowana, musisz podać hasło do niej</div>
+    <form action="{{ url_for('mainpanel') }}/{{id}}" method="post">
+        <label id="labelForNotePassword" name="labelForNotePassword" for="notePassword">Hasło do
+            notatki: </label>
+        <input type="password" id="notePassword" name="notePassword" rows="1" cols="20"></textarea>
+        <br>
+        <input type="submit" value="Odszyfruj">
+    </form>
+    Treść notatki:<br>
+    ___________________________________<br>
+    {{ note |safe }}<br>
+    ___________________________________<br>
+    {% endif %}
+    {% endblock content %}
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+    <form action={{ url_for('mainpanel') }}>
+        <input type="submit" value="Wróć" />
+    </form>
+</body>
+
+</html>

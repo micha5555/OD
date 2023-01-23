@@ -1,0 +1,80 @@
+<html>
+
+<body>
+  <h1>Cześć {{ username }}!</h1>
+
+  <div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    {{ message }}
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <form action={{ url_for('mainpanel') }} method="post">
+    <label for="markdown">Wpisz swoją notatkę:</label><br>
+    <textarea id="newNote" name="newNote" rows="20" cols="100"></textarea>
+    <br>
+    <input type="checkbox" id="isPublic" name="isPublic" />
+    <label for="isPublic">publiczna notatka</label>
+    <br>
+    <input type="checkbox" id="isEncrypted" name="isEncrypted" />
+    <label for="isEncrypted">zaszyfrowana notatka</label>
+    <br>
+    <label id="labelForNotePassword" name="labelForNotePassword" for="notePassword" style=visibility:hidden>Hasło do
+      notatki: </label>
+    <input type="password" id="notePassword" name="notePassword" rows="1" cols="20" style=visibility:hidden></textarea>
+    <br>
+    <input type="submit" value="Zapisz notatkę">
+  </form>
+
+  <h3> Twoje notatki: </h3>
+  {% if notes|length > 0 %}
+  <ul>
+    {% for note in notes %}
+    <li><a href="{{ url_for('mainpanel') }}/{{note.0}}"> Twoja notatka {{ loop.index }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <h3> Notatki udostępnione tobie: </h3>
+  {% if sharedToMeNotes|length > 0 %}
+  <ul>
+    {% for note in sharedToMeNotes %}
+    <li><a href="{{ url_for('mainpanel') }}/{{note.0}}"> Udostępniona notatka {{ loop.index }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <h3> Publiczne notatki: </h3>
+  {% if publicNotes|length > 0 %}
+  <ul>
+    {% for note in publicNotes %}
+    <li><a href="{{ url_for('mainpanel') }}/{{note.0}}"> Publiczna notatka {{ loop.index }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <form action={{ url_for('logout') }}>
+    <input type="submit" value="Log out" />
+  </form>
+
+  <script>
+    const checkbox = document.getElementById('isEncrypted');
+    const notePassword = document.getElementById('notePassword');
+
+    checkbox.addEventListener('click', function handleClick() {
+      if (checkbox.checked) {
+        notePassword.style.visibility = 'visible';
+        labelForNotePassword.style.visibility = 'visible';
+      } else {
+        notePassword.style.visibility = 'hidden';
+        labelForNotePassword.style.visibility = 'hidden';
+      }
+    });
+  </script>
+</body>
+
+</html>
