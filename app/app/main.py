@@ -40,7 +40,7 @@ def user_loader(username):
 
     db = sqlite3.connect(DATABASE)
     sql = db.cursor()
-    sql.execute(f"SELECT login, password FROM USERS WHERE login IN(?)", (username))
+    sql.execute(f"SELECT login, password FROM USERS WHERE login IN(?)", (username,))
     row = sql.fetchone()
     try:
         username, password = row
