@@ -17,10 +17,47 @@
   </div>
   <form action="/register" method="post">
     Login: <input name="username" value="" type="text" /><br>
-    Hasło: <input name="password" value="" type="password" /><br>
+    Hasło: <input id="password" name="password" value="" type="password" /><br>
     Powtórz hasło: <input name="repeated_password" value="" type="password" /><br>
     <input name="submit" value="Zarejestruj" type="submit" />
   </form>
-
+  <p id="strengthOfPassword"></p>
   </p>
+
+  <script>
+    document.getElementById("password").addEventListener("input", function () {
+      var password = this.value;
+      var strengthOfPassword = calculateEntropy(password);
+      document.getElementById("strengthOfPassword").innerHTML = strengthOfPassword;
+    });
+
+    function calculateEntropy(password) {
+      var charFrequencies = {};
+
+      for (var i = 0; i < password.length; i++) {
+        var char = password.charAt(i);
+        if (charFrequencies[char]) {
+          charFrequencies[char]++;
+        } else {
+          charFrequencies[char] = 1;
+        }
+      }
+
+      var entropy = 0;
+      for (var char in charFrequencies) {
+        var frequency = charFrequencies[char] / password.length;
+        entropy += frequency * Math.log2(frequency);
+      }
+      var entropy = -entropy;
+      if(entropy > 3){
+        return "Twoje hasło jest silne";
+      }
+      else if(entropy > 2.5){
+        return "Twoje hasło jest średnie";
+      }
+      else{
+        return "Twoje hasło jest słabe, zmień je!"
+      }
+    }
+  </script>
 </body>
