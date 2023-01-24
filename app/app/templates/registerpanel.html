@@ -50,13 +50,13 @@
       }
       var entropy = -entropy;
       if(entropy > 3){
-        return "Twoje hasło jest silne";
+        return "Twoje hasło jest silne. Jego entropia to: " + entropy.toFixed(2);
       }
       else if(entropy > 2.5){
-        return "Twoje hasło jest średnie";
+        return "Twoje hasło jest średnie. Jego entropia to: " + entropy.toFixed(2);
       }
       else{
-        return "Twoje hasło jest słabe, zmień je!"
+        return "Twoje hasło jest słabe, zmień je! Jego entropia to: " + entropy.toFixed(2);
       }
     }
   </script>
