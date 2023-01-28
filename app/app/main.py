@@ -5,7 +5,6 @@ from flask import Flask, render_template, request, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import markdown
 import bleach
-import sqlite3
 from argon2 import PasswordHasher
 import time
 
@@ -40,7 +39,6 @@ def user_loader(username):
         username, password = userRow
     except:
         return None
-
     user = User()
     user.id = username
     user.password = password
@@ -150,30 +148,25 @@ def mainpanel():
 @app.route("/mainpanel/<id>", methods=['GET', 'POST'])
 @login_required
 def render_old(id):
-    db = sqlite3.connect(DATABASE)
-    sql = db.cursor()
-    sql.execute(f"SELECT id, owner, content, isPublic, isEncrypted FROM notes WHERE id = (?)", (id,))
-    id, owner, content, isPublic, isEncrypted = sql.fetchone()
-    if owner != current_user.id:
-        isOwner = 0
-    else:
-        isOwner = 1
+    note = get_note_with_id(id)
+    if note == None:
+        flash("Nie można znaleźć notatki")
+        return redirect("/mainpanel")
+    id, owner, content, isPublic, isEncrypted = note
+    isOwner = check_if_owner(owner, current_user.id)
     if request.method == 'GET':
+        # to do poprawy
         if isOwner == 1 or isPublic == 1:
             rendered = markdown.markdown(content)
             if "<script>" in rendered:
                 rendered = bleach.clean(rendered)
             return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered, isOwner=isOwner)
 
-        sql.execute(f"SELECT user FROM SHAREDNOTES WHERE noteId = (?)", (id,))
-        usersWithAccess = sql.fetchall()
-        tmp = ()
-        for elem in usersWithAccess:
-            tmp = tmp + elem
-        if len(tmp) == 0:
+        usersWithAccess = get_users_having_access_to_shared_note(id)
+        if len(usersWithAccess) == 0:
             return "Access to note forbidden", 403
 
-        usersWithAccessSingleTuple = tmp[0]
+        usersWithAccessSingleTuple = usersWithAccess[0]
         if not (current_user.id in usersWithAccessSingleTuple):
             return "Access to note forbidden", 403
         rendered = markdown.markdown(content)
@@ -187,14 +180,12 @@ def render_old(id):
             if(shareUser == current_user.id):
                 flash("Nie możesz udostępnić notatki samemu sobie")
                 return redirect(str(id))
-            sql.execute(f"SELECT login FROM USERS WHERE login = (?)", (shareUser,))
-            userLogin = sql.fetchone()
-            if(userLogin == None):
+            
+            if check_if_user_exists(shareUser) == False:
                 flash("Użytkownik " + shareUser + " nie istnieje")
                 return redirect(str(id))
             
-            sql.execute(f"INSERT INTO SHAREDNOTES (noteId, user) VALUES (?, ?)", (id, shareUser))
-            db.commit()
+            share_note_with_user(shareUser, id)
             flash("Udostępniono notatkę użytkownikowi " + shareUser)
             return redirect(str(id))
         else:

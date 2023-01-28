@@ -90,3 +90,39 @@ def add_new_note(login, note, isEncrypted, isPublic):
     sql.execute(f"INSERT INTO NOTES (owner, content, isEncrypted, isPublic) VALUES (?, ?, ?, ?)", (login, note, isEncrypted, isPublic))
     db.commit()
     db.close()
+
+def get_note_with_id(noteId):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT id, owner, content, isPublic, isEncrypted FROM notes WHERE id = (?)", (noteId,))
+    note = sql.fetchone()
+    db.close()
+    return note
+
+def get_users_having_access_to_shared_note(noteId):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT user FROM SHAREDNOTES WHERE noteId = (?)", (noteId,))
+    usersWithAccess = sql.fetchall()
+    db.close()
+    tmp = ()
+    for elem in usersWithAccess:
+        tmp = tmp + elem
+    return tmp
+
+def check_if_user_exists(login):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT login FROM USERS WHERE login = (?)", (login,))
+    userLogin = sql.fetchone()
+    db.close()
+    if userLogin == None or len(userLogin) == 0:
+        return False
+    return True
+
+def share_note_with_user(userLogin, id):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"INSERT INTO SHAREDNOTES (noteId, user) VALUES (?, ?)", (id, userLogin))
+    db.commit()
+    db.close()
