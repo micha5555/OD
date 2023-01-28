@@ -1,10 +1,8 @@
 from sys import argv
 import math
 
-def count_file_entropy(file_name):
-    f = open(file_name, "rb")
-    data = f.read()
-
+def count_file_entropy(data):
+    data = bytes(data, encoding='utf-8')
     N = len(data)
     n = {}
     for character in data:

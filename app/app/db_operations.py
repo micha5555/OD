@@ -1,8 +1,12 @@
 from flask import flash
 import sqlite3
 
-def create_tables(db_name):
-    db = sqlite3.connect(db_name)
+from common_operations import ids_to_ids_string
+
+DBNAME = "database.db"
+
+def create_tables():
+    db = sqlite3.connect(DBNAME)
     cursor = db.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS USERS (
@@ -33,7 +37,7 @@ def create_tables(db_name):
     db.close()
 
 def register_user(login, password):
-    db = sqlite3.connect("database.db")
+    db = sqlite3.connect(DBNAME)
     cursor = db.cursor()
     cursor.execute("SELECT login FROM USERS WHERE login IN (?)", (login,))
     rows = cursor.fetchall()
@@ -43,4 +47,46 @@ def register_user(login, password):
         flash("Zarejestrowano pomyslnie")
     else:
         flash("Login " + login + " jest zajęty")
+    db.close()
+
+def get_credentials_by_login(login):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT login, password FROM users WHERE login IN(?)", (login,))
+    userRow = sql.fetchone()
+    db.close()
+    return userRow
+
+def get_ids_of_user_notes(login):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT id FROM NOTES WHERE owner == (?)", (login,))
+    notesIds = sql.fetchall()
+    db.close()
+    return notesIds
+
+def get_public_notes():
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT id, owner, content FROM NOTES WHERE isPublic = 1")
+    publicNotes= sql.fetchall()
+    db.close()
+    return publicNotes
+
+def get_notes_shared_to_user(login):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT noteId FROM SHAREDNOTES WHERE user = (?)", (login))
+    sharedToUserIds = sql.fetchall()
+    idsString = ids_to_ids_string(sharedToUserIds)
+    sql.execute(f"SELECT id, owner, content FROM NOTES WHERE id IN (?)", (idsString,))
+    sharedToUserNotes = sql.fetchall()
+    db.close()
+    return sharedToUserNotes
+
+def add_new_note(login, note, isEncrypted, isPublic):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"INSERT INTO NOTES (owner, content, isEncrypted, isPublic) VALUES (?, ?, ?, ?)", (login, note, isEncrypted, isPublic))
+    db.commit()
     db.close()

@@ -12,23 +12,20 @@ import time
 from db_operations import *
 from validator import *
 from notes_encryptor import *
+from common_operations import *
 
 app = Flask(__name__)
-
-actual_user = ""
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 app.secret_key = "854658yuthjtureyu89tjh89trj8h548h754y7854hty8er8ygw875g6854yt88"
 
-DATABASE = "./database.db"
-
 ph = PasswordHasher()
 
 invalidLoginsCounter = 0
 mustWait = 0
-create_tables(DATABASE)
+create_tables()
 
 class User(UserMixin):
     pass
@@ -38,12 +35,9 @@ def user_loader(username):
     if username is None:
         return None
 
-    db = sqlite3.connect(DATABASE)
-    sql = db.cursor()
-    sql.execute(f"SELECT login, password FROM USERS WHERE login IN(?)", (username,))
-    row = sql.fetchone()
+    userRow = get_credentials_by_login(login)
     try:
-        username, password = row
+        username, password = userRow
     except:
         return None
 
@@ -110,26 +104,12 @@ def register():
 @login_required
 def mainpanel():
     username = current_user.id
-    db = sqlite3.connect(DATABASE)
-    sql = db.cursor()
-    sql.execute(f"SELECT id FROM NOTES WHERE owner == '{username}'")
-    notes = sql.fetchall()
-    sql.execute(f"SELECT id, owner, content FROM NOTES WHERE isPublic = 1")
-    publicNotes= sql.fetchall()
-    sql.execute(f"SELECT noteId FROM SHAREDNOTES WHERE user = '{current_user.id}'")
-    sharedToMeIds = sql.fetchall()
-    idsString = "("
-    for elem in sharedToMeIds:
-        idsString = idsString + str(elem[0]) + ","
-    if len(idsString) > 1:
-        idsString = idsString[:len(idsString)-1]
-    idsString = idsString + ")"
-    sql.execute(f"SELECT id, owner, content FROM NOTES WHERE id IN {idsString}")
-    sharedToMeNotes = sql.fetchall()
+    notes = get_ids_of_user_notes(username)
+    publicNotes = get_public_notes()
+    sharedNotesToUser = get_notes_shared_to_user(username)
     
-
     if request.method == 'GET':
-        return render_template("mainpanel.html", username=username, notes=notes, publicNotes=publicNotes, sharedToMeNotes=sharedToMeNotes)
+        return render_template("mainpanel.html", username=username, notes=notes, publicNotes=publicNotes, sharedToMeNotes=sharedNotesToUser)
     elif request.method == 'POST':
         isPublic = False
         if request.form.get("isPublic"):
@@ -155,15 +135,11 @@ def mainpanel():
             notePasswordBytes = bytes(notePassword, encoding='utf-8')
             encryptedNote = encrypt(notePasswordBytes, newNoteBytes)
 
-            sql.execute(f"INSERT INTO NOTES (owner, content, isEncrypted, isPublic) VALUES (?, ?, ?, ?)", (username, encryptedNote, isEncrypted, isPublic))
-            db.commit()
+            add_new_note(username, encryptedNote, isEncrypted, isPublic)
             newNote = ""
             flash("Zapisano zaszyfrowaną notatkę")
             return redirect("/mainpanel")
-        db = sqlite3.connect(DATABASE)
-        sql = db.cursor()
-        sql.execute(f"INSERT INTO NOTES (owner, content, isEncrypted, isPublic) VALUES (?, ?, ?, ?)", (username, newNote, False, isPublic))
-        db.commit()
+        add_new_note(username, newNote, False, isPublic)
         newNote = ""
         if isPublic:
             flash("Zapisano publiczną notatkę")
@@ -176,7 +152,7 @@ def mainpanel():
 def render_old(id):
     db = sqlite3.connect(DATABASE)
     sql = db.cursor()
-    sql.execute(f"SELECT id, owner, content, isPublic, isEncrypted FROM notes WHERE id = {id}")
+    sql.execute(f"SELECT id, owner, content, isPublic, isEncrypted FROM notes WHERE id = (?)", (id,))
     id, owner, content, isPublic, isEncrypted = sql.fetchone()
     if owner != current_user.id:
         isOwner = 0
@@ -189,7 +165,7 @@ def render_old(id):
                 rendered = bleach.clean(rendered)
             return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered, isOwner=isOwner)
 
-        sql.execute(f"SELECT user FROM SHAREDNOTES WHERE noteId = '{id}'")
+        sql.execute(f"SELECT user FROM SHAREDNOTES WHERE noteId = (?)", (id,))
         usersWithAccess = sql.fetchall()
         tmp = ()
         for elem in usersWithAccess:
@@ -211,7 +187,7 @@ def render_old(id):
             if(shareUser == current_user.id):
                 flash("Nie możesz udostępnić notatki samemu sobie")
                 return redirect(str(id))
-            sql.execute(f"SELECT login FROM USERS WHERE login = '{shareUser}'")
+            sql.execute(f"SELECT login FROM USERS WHERE login = (?)", (shareUser,))
             userLogin = sql.fetchone()
             if(userLogin == None):
                 flash("Użytkownik " + shareUser + " nie istnieje")
