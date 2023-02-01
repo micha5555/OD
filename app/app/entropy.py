@@ -1,7 +1,7 @@
 from sys import argv
 import math
 
-def count_file_entropy(data):
+def count_data_entropy(data):
     data = bytes(data, encoding='utf-8')
     N = len(data)
     n = {}

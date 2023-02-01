@@ -1,8 +1,7 @@
 <!doctype html>
-
 <head>
+  <link rel="stylesheet" href="static/css/hints.css">
 </head>
-
 <body>
 
   <p> Rejestracja nowego konta
@@ -17,7 +16,16 @@
   </div>
   <form action="/register" method="post">
     Login: <input name="username" value="" type="text" /><br>
-    Hasło: <input id="password" name="password" value="" type="password" /><br>
+    Hasło: <input id="password" name="password" value="" type="password" />
+    <div id="password_tip" class="tooltip">[?]
+      <span class="tooltiptext">Login może zawierać jedynie litery i cyfry<br>
+        Hasło musi mieć co najmniej 8 znaków, w tym:<br>
+          -przynajmniej jedna wielka litera<br>
+          -przynajmniej jedna mała litera<br>
+          -przynajmniej jedna cyfra<br>
+          -przynajmniej jeden znak specjalny z [#?!@$%^&*-]
+    </span>
+  </div><br>
     Powtórz hasło: <input name="repeated_password" value="" type="password" /><br>
     <p id="strengthOfPassword"></p>
     <input name="submit" value="Zarejestruj" type="submit" disabled="true"/>
@@ -25,15 +33,7 @@
   <form action="/">
     <input type="submit" value="Wstecz" />
   </form>
-  
-  <p>
-    Login może zawierać jedynie litery i cyfry<br>
-    Hasło musi mieć co najmniej 8 znaków, w tym:<br>
-      -przynajmniej jedna wielka litera<br>
-      -przynajmniej jedna mała litera<br>
-      -przynajmniej jedna cyfra<br>
-      -orzynajmniej jeden znak specjalny z [#?!@$%^&*-]
-  </p>
+
   </p>
   <script>
     

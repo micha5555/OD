@@ -3,16 +3,16 @@
 
 from flask import Flask, render_template, request, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-import markdown
-import bleach
 from argon2 import PasswordHasher
 import time
 import secrets
+from random import randrange
 
 from db_operations import *
 from validator import *
-from notes_encryptor import *
+from notes_operations import *
 from common_operations import *
+from entropy import count_data_entropy
 
 app = Flask(__name__)
 
@@ -58,7 +58,7 @@ def login():
     if request.method == "POST":
         login = request.form.get("username")
         password = request.form.get("password")
-        time.sleep(3)
+        time.sleep(randrange(20, 40)/10)
 
         user = user_loader(login)
         if user is None or not validate_login_and_password(login, password):
@@ -96,6 +96,10 @@ def register():
     password = request.form.get("password")
     repeatedPassword = request.form.get("repeated_password")
     if validate_register_data(login, password, repeatedPassword):
+        # just in case
+        if count_data_entropy() <= 2.5:
+            flash("Twoje hasło jest zbyt słabe, spróbuj ponownie")
+            return redirect("/")
         salt = secrets.token_urlsafe(16)
         hashedPassword = ph.hash(salt+password+pepper)
         register_user(login, hashedPassword, salt)
@@ -164,10 +168,7 @@ def render_old(id):
     if request.method == 'GET':
         # to do poprawy
         if isOwner == 1 or isPublic == 1:
-            rendered = markdown.markdown(content)
-            # if "<script>" in rendered:
-            #     rendered = bleach.clean(rendered)
-            rendered = bleach.clean(rendered)
+            rendered = clean_note(content)
             return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered, isOwner=isOwner)
 
         usersWithAccess = get_users_having_access_to_shared_note(id)
@@ -177,9 +178,7 @@ def render_old(id):
         usersWithAccessSingleTuple = usersWithAccess[0]
         if not (current_user.id in usersWithAccessSingleTuple):
             return "Access to note forbidden", 403
-        rendered = markdown.markdown(content)
-        # if "<script>" in rendered:
-        #     rendered = bleach.clean(rendered)
+        rendered=clean_note(content)
         return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered, isOwner=isOwner)
     elif request.method == 'POST':
         isShare = request.form.get("isShare")
@@ -201,9 +200,7 @@ def render_old(id):
             try:
                 decrypted = decrypt(notePassword, content, decode=True)
                 decrypted = decrypted.decode("utf-8")
-                rendered = markdown.markdown(decrypted)
-                if "<script>" in rendered:
-                    rendered = bleach.clean(rendered)
+                rendered = clean_note(decrypted)
                 return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered)
             except:
                 flash("Hasło do notatki nieprawidłowe")
