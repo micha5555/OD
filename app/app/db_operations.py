@@ -52,7 +52,8 @@ def register_user(login, password):
 def get_credentials_by_login(login):
     db = sqlite3.connect(DBNAME)
     sql = db.cursor()
-    sql.execute(f"SELECT login, password FROM users WHERE login IN(?)", (login,))
+    print(login)
+    sql.execute(f"SELECT login, password FROM users WHERE login == (?)", (login,))
     userRow = sql.fetchone()
     db.close()
     return userRow
@@ -76,7 +77,7 @@ def get_public_notes():
 def get_notes_shared_to_user(login):
     db = sqlite3.connect(DBNAME)
     sql = db.cursor()
-    sql.execute(f"SELECT noteId FROM SHAREDNOTES WHERE user = (?)", (login))
+    sql.execute(f"SELECT noteId FROM SHAREDNOTES WHERE user = (?)", (login,))
     sharedToUserIds = sql.fetchall()
     idsString = ids_to_ids_string(sharedToUserIds)
     sql.execute(f"SELECT id, owner, content FROM NOTES WHERE id IN (?)", (idsString,))
