@@ -1,5 +1,7 @@
 <html>
-
+<head>
+  <link rel="stylesheet" href="static/css/hints.css">
+</head>
 <body>
   <h1>Cześć {{ username }}!</h1>
 
@@ -25,7 +27,15 @@
     <br>
     <label id="labelForNotePassword" name="labelForNotePassword" for="notePassword" style=visibility:hidden>Hasło do
       notatki: </label>
-    <input type="password" id="notePassword" name="notePassword" rows="1" cols="20" style=visibility:hidden></textarea>
+    <input type="password" id="notePassword" name="notePassword" rows="1" cols="20" style=visibility:hidden>
+    <div id="password_tip" class="tooltip" style=visibility:hidden>[?]
+      <span class="tooltiptext">Hasło musi mieć co najmniej 8 znaków, w tym:<br>
+      -przynajmniej jedna wielka litera<br>
+      -przynajmniej jedna mała litera<br>
+      -przynajmniej jedna cyfra<br>
+      -przynajmniej jeden znak specjalny z [#?!@$%^&*-]
+    </span>
+  </div>
     <br>
     <input type="submit" value="Zapisz notatkę">
   </form>
@@ -63,15 +73,16 @@
 
   <script>
     const checkbox = document.getElementById('isEncrypted');
-    const notePassword = document.getElementById('notePassword');
 
     checkbox.addEventListener('click', function handleClick() {
       if (checkbox.checked) {
         notePassword.style.visibility = 'visible';
         labelForNotePassword.style.visibility = 'visible';
+        password_tip.style.visibility = 'visible';
       } else {
         notePassword.style.visibility = 'hidden';
         labelForNotePassword.style.visibility = 'hidden';
+        password_tip.style.visibility = 'hidden';
       }
     });
   </script>

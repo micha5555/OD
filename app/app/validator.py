@@ -23,5 +23,11 @@ def validate_login_and_password(login, password):
     else:
         return False
     
-# def validate_if_note_is_potential_xss(note):
-#     regex = "^ $"
+def validate_note_password(password):
+    # at least 8 characters, at least one uppercase letter, at least one lowercase letter, at least one number and at least one special character
+    password_pattern = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"
+    if password is None or len(password) == 0:
+        return False
+    if re.match(password_pattern, password):
+        return True
+    return False

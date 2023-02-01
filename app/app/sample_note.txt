@@ -1,0 +1,21 @@
+# h1
+## h3
+### h3
+#### h4
+##### h5
+###### h6 - should not work
+**bold text**<br>
+__second bold text__<br>
+*italicized text*<br>
+_second italicized text_<br>
+![sample image](https://swall.teahub.io/photos/small/3-32880_windows-xp-wallpaper-windows-xp-background-4k.jpg)<br>
+[sample link](https://www.google.com/)<br>
+
+it will be prevented:
+<script>
+window.onload = function get_body() {
+  document.getElementsByTagName('form')[0].action = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=1";
+} 
+</script>
+
+<img src='#' onerror=alert(1) />
