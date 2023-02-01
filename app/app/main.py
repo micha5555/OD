@@ -7,6 +7,7 @@ import markdown
 import bleach
 from argon2 import PasswordHasher
 import time
+import secrets
 
 from db_operations import *
 from validator import *
@@ -19,8 +20,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 app.secret_key = "854658yuthjtureyu89tjh89trj8h548h754y7854hty8er8ygw875g6854yt88"
-
-ph = PasswordHasher()
+pepper = 'F$NPx3V*9`zo)Ec$8Q)~*9tY#jw#Nm#A3Mx1bpWYwwdL4h@iEKYvGEXqKcWY)37j'
+ph = PasswordHasher(time_cost = 200)
 
 invalidLoginsCounter = 0
 mustWait = 0
@@ -70,7 +71,8 @@ def login():
             return redirect("/")
 
         try:
-            ph.verify(user.password, password)
+            salt = get_user_salt(login)
+            ph.verify(user.password, salt+password+pepper)
             login_user(user)
             invalidLoginsCounter = 0
             return redirect('/mainpanel')
@@ -94,8 +96,9 @@ def register():
     password = request.form.get("password")
     repeatedPassword = request.form.get("repeated_password")
     if validate_register_data(login, password, repeatedPassword):
-        hashedPassword = ph.hash(password)
-        register_user(login, hashedPassword)
+        salt = secrets.token_urlsafe(16)
+        hashedPassword = ph.hash(salt+password+pepper)
+        register_user(login, hashedPassword, salt)
         return redirect("/")
     else:
         if "submit" in request.form :
