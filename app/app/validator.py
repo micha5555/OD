@@ -1,9 +1,9 @@
 import re
 
 def validate_register_data(login, password, repeated_password):
-    print(login)
-    print(password)
-    print(repeated_password)
+    # print(login)
+    # print(password)
+    # print(repeated_password)
     if password != repeated_password:
         return False
     else:

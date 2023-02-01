@@ -19,12 +19,24 @@
     Login: <input name="username" value="" type="text" /><br>
     Hasło: <input id="password" name="password" value="" type="password" /><br>
     Powtórz hasło: <input name="repeated_password" value="" type="password" /><br>
-    <input name="submit" value="Zarejestruj" type="submit" />
+    <p id="strengthOfPassword"></p>
+    <input name="submit" value="Zarejestruj" type="submit" disabled="true"/>
   </form>
-  <p id="strengthOfPassword"></p>
+  <form action="/">
+    <input type="submit" value="Wstecz" />
+  </form>
+  
+  <p>
+    Login może zawierać jedynie litery i cyfry<br>
+    Hasło musi mieć co najmniej 8 znaków, w tym:<br>
+      -przynajmniej jedna wielka litera<br>
+      -przynajmniej jedna mała litera<br>
+      -przynajmniej jedna cyfra<br>
+      -orzynajmniej jeden znak specjalny z [#?!@$%^&*-]
   </p>
-
+  </p>
   <script>
+    
     document.getElementById("password").addEventListener("input", function () {
       var password = this.value;
       var strengthOfPassword = calculateEntropy(password);
@@ -50,13 +62,16 @@
       }
       var entropy = -entropy;
       if(entropy > 3){
+        document.getElementsByName("submit")[0].disabled = false;
         return "Twoje hasło jest silne. Jego entropia to: " + entropy.toFixed(2);
       }
       else if(entropy > 2.5){
+        document.getElementsByName("submit")[0].disabled = false;
         return "Twoje hasło jest średnie. Jego entropia to: " + entropy.toFixed(2);
       }
       else{
-        return "Twoje hasło jest słabe, zmień je! Jego entropia to: " + entropy.toFixed(2);
+        document.getElementsByName("submit")[0].disabled = true;
+        return "Twoje hasło jest słabe, zmień je, aby utworzyć konto! Jego entropia to: " + entropy.toFixed(2);
       }
     }
   </script>

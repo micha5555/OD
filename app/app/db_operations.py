@@ -11,7 +11,8 @@ def create_tables():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS USERS (
             login string NOT NULL PRIMARY KEY,
-            password string NOT NULL
+            password string NOT NULL,
+            salt string NOT NULL
             )
     ''')
     cursor.execute('''
@@ -36,13 +37,13 @@ def create_tables():
     db.commit()
     db.close()
 
-def register_user(login, password):
+def register_user(login, password, salt):
     db = sqlite3.connect(DBNAME)
     cursor = db.cursor()
     cursor.execute("SELECT login FROM USERS WHERE login IN (?)", (login,))
     rows = cursor.fetchall()
     if len(rows) == 0:
-        cursor.execute("INSERT INTO USERS (login, password) VALUES (?, ?)", (login, password))
+        cursor.execute("INSERT INTO USERS (login, password, salt) VALUES (?, ?, ?)", (login, password, salt))
         db.commit()
         flash("Zarejestrowano pomyslnie")
     else:
@@ -52,11 +53,18 @@ def register_user(login, password):
 def get_credentials_by_login(login):
     db = sqlite3.connect(DBNAME)
     sql = db.cursor()
-    print(login)
     sql.execute(f"SELECT login, password FROM users WHERE login == (?)", (login,))
     userRow = sql.fetchone()
     db.close()
     return userRow
+
+def get_user_salt(login):
+    db = sqlite3.connect(DBNAME)
+    sql = db.cursor()
+    sql.execute(f"SELECT salt FROM users WHERE login == (?)", (login,))
+    salt = sql.fetchone()[0]
+    db.close()
+    return salt
 
 def get_ids_of_user_notes(login):
     db = sqlite3.connect(DBNAME)
