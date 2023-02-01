@@ -34,7 +34,7 @@ def user_loader(username):
     if username is None:
         return None
 
-    userRow = get_credentials_by_login(login)
+    userRow = get_credentials_by_login(username)
     try:
         username, password = userRow
     except:
@@ -55,11 +55,12 @@ def login():
     if request.method == "GET":
         return render_template("index.html")
     if request.method == "POST":
-        username = request.form.get("username")
+        login = request.form.get("username")
         password = request.form.get("password")
         time.sleep(3)
-        user = user_loader(username)
-        if user is None:
+
+        user = user_loader(login)
+        if user is None or not validate_login_and_password(login, password):
             invalidLoginsCounter = invalidLoginsCounter + 1
             flash("Nieprawidłowy login lub hasło")
             if invalidLoginsCounter == 5:
@@ -89,9 +90,12 @@ def logout():
 
 @app.route("/register", methods=['POST'])
 def register():
-    if(validate_register_data_corectness(request.form.get("username"), request.form.get("password"), request.form.get("repeated_password"))):
-        passwd = ph.hash(request.form.get("password"))
-        register_user(request.form.get("username"), passwd)
+    login = request.form.get("username")
+    password = request.form.get("password")
+    repeatedPassword = request.form.get("repeated_password")
+    if validate_register_data(login, password, repeatedPassword):
+        hashedPassword = ph.hash(password)
+        register_user(login, hashedPassword)
         return redirect("/")
     else:
         if "submit" in request.form :
@@ -158,8 +162,9 @@ def render_old(id):
         # to do poprawy
         if isOwner == 1 or isPublic == 1:
             rendered = markdown.markdown(content)
-            if "<script>" in rendered:
-                rendered = bleach.clean(rendered)
+            # if "<script>" in rendered:
+            #     rendered = bleach.clean(rendered)
+            rendered = bleach.clean(rendered)
             return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered, isOwner=isOwner)
 
         usersWithAccess = get_users_having_access_to_shared_note(id)
@@ -170,8 +175,8 @@ def render_old(id):
         if not (current_user.id in usersWithAccessSingleTuple):
             return "Access to note forbidden", 403
         rendered = markdown.markdown(content)
-        if "<script>" in rendered:
-            rendered = bleach.clean(rendered)
+        # if "<script>" in rendered:
+        #     rendered = bleach.clean(rendered)
         return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered, isOwner=isOwner)
     elif request.method == 'POST':
         isShare = request.form.get("isShare")
