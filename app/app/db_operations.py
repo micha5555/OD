@@ -22,6 +22,7 @@ def create_tables():
             isPublic boolean,
             isEncrypted booolean,
             content string,
+            salt string NOT NULL,
             FOREIGN KEY (owner)
                 REFERENCES USERS(login))
     ''')
@@ -93,17 +94,17 @@ def get_notes_shared_to_user(login):
     db.close()
     return sharedToUserNotes
 
-def add_new_note(login, note, isEncrypted, isPublic):
+def add_new_note(login, note, salt, isEncrypted, isPublic):
     db = sqlite3.connect(DBNAME)
     sql = db.cursor()
-    sql.execute(f"INSERT INTO NOTES (owner, content, isEncrypted, isPublic) VALUES (?, ?, ?, ?)", (login, note, isEncrypted, isPublic))
+    sql.execute(f"INSERT INTO NOTES (owner, content, salt, isEncrypted, isPublic) VALUES (?, ?, ?, ?, ?)", (login, note, salt, isEncrypted, isPublic))
     db.commit()
     db.close()
 
 def get_note_with_id(noteId):
     db = sqlite3.connect(DBNAME)
     sql = db.cursor()
-    sql.execute(f"SELECT id, owner, content, isPublic, isEncrypted FROM notes WHERE id = (?)", (noteId,))
+    sql.execute(f"SELECT id, owner, content, salt, isPublic, isEncrypted FROM notes WHERE id = (?)", (noteId,))
     note = sql.fetchone()
     db.close()
     return note

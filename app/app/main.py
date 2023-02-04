@@ -21,6 +21,8 @@ login_manager.init_app(app)
 
 app.secret_key = "854658yuthjtureyu89tjh89trj8h548h754y7854hty8er8ygw875g6854yt88"
 pepper = 'F$NPx3V*9`zo)Ec$8Q)~*9tY#jw#Nm#A3Mx1bpWYwwdL4h@iEKYvGEXqKcWY)37j'
+notes_pepper = 'gfhtryh6%$&?sfgre+weterghsd_gd-raet-4wthgfjngf'
+
 ph = PasswordHasher(time_cost = 200)
 
 invalidLoginsCounter = 0
@@ -97,7 +99,7 @@ def register():
     repeatedPassword = request.form.get("repeated_password")
     if validate_register_data(login, password, repeatedPassword):
         # just in case
-        if count_data_entropy() <= 2.5:
+        if count_data_entropy(password) <= 2.5:
             flash("Twoje hasło jest zbyt słabe, spróbuj ponownie")
             return redirect("/")
         salt = secrets.token_urlsafe(16)
@@ -140,15 +142,15 @@ def mainpanel():
                 flash("Hasło do notatki nie może być puste")
                 return redirect("/mainpanel")
 
+            salt = secrets.token_urlsafe(16)
             newNoteBytes = bytes(newNote, encoding='utf-8')
-            notePasswordBytes = bytes(notePassword, encoding='utf-8')
+            notePasswordBytes = bytes(salt+notePassword+notes_pepper, encoding='utf-8')
             encryptedNote = encrypt(notePasswordBytes, newNoteBytes)
-
-            add_new_note(username, encryptedNote, isEncrypted, isPublic)
+            add_new_note(username, encryptedNote, salt, isEncrypted, isPublic)
             newNote = ""
             flash("Zapisano zaszyfrowaną notatkę")
             return redirect("/mainpanel")
-        add_new_note(username, newNote, False, isPublic)
+        add_new_note(username, newNote, '', False, isPublic)
         newNote = ""
         if isPublic:
             flash("Zapisano publiczną notatkę")
@@ -163,10 +165,9 @@ def render_old(id):
     if note == None:
         flash("Nie można znaleźć notatki")
         return redirect("/mainpanel")
-    id, owner, content, isPublic, isEncrypted = note
+    id, owner, content, salt, isPublic, isEncrypted = note
     isOwner = check_if_owner(owner, current_user.id)
     if request.method == 'GET':
-        # to do poprawy
         if isOwner == 1 or isPublic == 1:
             rendered = clean_note(content)
             return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered, isOwner=isOwner)
@@ -196,9 +197,9 @@ def render_old(id):
             flash("Udostępniono notatkę użytkownikowi " + shareUser)
             return redirect(str(id))
         else:
-            notePassword = bytes(request.form.get("notePassword"), encoding='utf-8')
+            notePassword = bytes(salt+request.form.get("notePassword")+notes_pepper, encoding='utf-8')
             try:
-                decrypted = decrypt(notePassword, content, decode=True)
+                decrypted = decrypt(notePassword, content)
                 decrypted = decrypted.decode("utf-8")
                 rendered = clean_note(decrypted)
                 return render_template("note.html", id=id, owner=owner, isPublic=isPublic, isEncrypted=isEncrypted, note=rendered)

@@ -1,4 +1,3 @@
-from sys import argv
 import math
 
 def count_data_entropy(data):
