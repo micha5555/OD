@@ -1,6 +1,3 @@
-# Notatki można zapisywać be polskich znaków
-# Niestety nie udało mi się wrzucić rozwiązania do dockera, uruchomienie: python3 main.py, apliakcja jest dostępna na porcie 5000 na localhoscie
-
 from flask import Flask, render_template, request, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from argon2 import PasswordHasher
