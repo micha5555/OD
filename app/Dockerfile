@@ -3,10 +3,8 @@ FROM ubuntu:latest
 WORKDIR /app
 
 # copy the requirements file into the image
-COPY requirements.txt /app/requirements.txt
+COPY requirements.txt ./requirements.txt
 
-# switch working directory
-WORKDIR /app
 
 # install the dependencies and packages in the requirements file
 RUN apt update -y
@@ -34,12 +32,16 @@ RUN apt install python3-pip -y
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip install gunicorn
 # RUN gunicorn main:app
-CMD ["gunicorn", "main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000" "main:app"]
 # CMD ["python3", "main.py"]
+# RUN python3 main.py
 
-CMD service nginx start
+# CMD service nginx start; uwsgi --socket 127.0.0.1:5000 --wsgi-file /app/main.py --callable app
+EXPOSE 80 443 5000
 
-EXPOSE 8000 80 443
+# CMD service nginx start
+
+# EXPOSE 8000 80 443
 
 # configure the container to run in an executed manner
 # ENTRYPOINT [ "python" ]
