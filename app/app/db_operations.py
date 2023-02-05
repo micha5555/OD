@@ -86,10 +86,7 @@ def get_public_notes():
 def get_notes_shared_to_user(login):
     db = sqlite3.connect(DBNAME)
     sql = db.cursor()
-    sql.execute(f"SELECT noteId FROM SHAREDNOTES WHERE user = (?)", (login,))
-    sharedToUserIds = sql.fetchall()
-    idsString = ids_to_ids_string(sharedToUserIds)
-    sql.execute(f"SELECT id, owner, content FROM NOTES WHERE id IN (?)", (idsString,))
+    sql.execute(F"SELECT NOTES.id, NOTES.owner, NOTES.content FROM SHAREDNOTES INNER JOIN NOTES ON SHAREDNOTES.noteId=NOTES.id WHERE SHAREDNOTES.user == (?)", (login,))
     sharedToUserNotes = sql.fetchall()
     db.close()
     return sharedToUserNotes

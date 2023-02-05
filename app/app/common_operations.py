@@ -1,10 +1,9 @@
 def ids_to_ids_string(ids):
-    idsString = "("
+    idsString = ""
     for elem in ids:
         idsString = idsString + str(elem[0]) + ","
-    if len(idsString) > 1:
-        idsString = idsString[:len(idsString)-1]
-    idsString = idsString + ")"
+    idsString = idsString[:len(idsString)-1]
+    return idsString
 
 def check_if_owner(noteOwner, currentUser):
     if currentUser == None or (noteOwner != currentUser):
