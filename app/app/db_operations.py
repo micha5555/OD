@@ -1,8 +1,6 @@
 from flask import flash
 import sqlite3
 
-from common_operations import ids_to_ids_string
-
 DBNAME = "database.db"
 
 def create_tables():
