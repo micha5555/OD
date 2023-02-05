@@ -31,10 +31,6 @@ RUN apt install python3 -y
 RUN apt install python3-pip -y
 
 
-
-
-
-
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip install gunicorn
 # RUN gunicorn main:app
@@ -43,7 +39,7 @@ CMD ["gunicorn", "main:app"]
 
 CMD service nginx start
 
-EXPOSE 8000
+EXPOSE 8000 80 443
 
 # configure the container to run in an executed manner
 # ENTRYPOINT [ "python" ]
